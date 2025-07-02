@@ -68,6 +68,8 @@ const ReviewsPage = () => {
             <th className="border px-4 py-2">Rating</th>
             <th className="border px-4 py-2">Review</th>
             <th className="border px-4 py-2">Actions</th>
+            <th className="border px-4 py-2">Actions</th>
+
           </tr>
         </thead>
         <tbody>
