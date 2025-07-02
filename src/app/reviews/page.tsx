@@ -5,6 +5,8 @@ import { useSelector } from 'react-redux';
 import { RootState } from '@/redux/store';
 import axios from 'axios';
 import { useRouter } from 'next/navigation'; // Importing useRouter
+import { FaTrash } from "react-icons/fa6";
+import { FaEye } from "react-icons/fa";
 
 interface Review {
   id: number;             
@@ -52,6 +54,68 @@ const ReviewsPage = () => {
       });
   }, [token]);
 
+  const handleDeleteReview = async (reviewId: number) => {
+  const confirmDelete = window.confirm("Are you sure you want to delete this order?");
+  if (!confirmDelete) return;
+
+  try {
+    const response = await fetch(`http://localhost:8000/api/admin/reviews/${reviewId}`, {
+      method: "DELETE",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${token}`, // Use the token for authentication
+      },
+    });
+
+    if (response.ok) {
+      setReviews(reviews.filter((review) => review.id !== reviewId));
+      alert("review deleted successfully.");
+    } else {
+      console.error("Failed to delete the review:", response.statusText);
+      alert("Failed to delete the review.");
+    }
+  } catch (error) {
+    console.error("Error deleting review:", error);
+    alert("Error deleting the review.");
+  }
+};
+
+const handlePublicStatus = async (reviewId: number) => {
+  // Find the review by ID
+  const review = reviews.find((review) => review.id === reviewId);
+  if (!review) return; // If the review doesn't exist, do nothing
+
+  // Toggle is_public status, no need for a specific check on the existing status here
+  const updatedIsPublic = review.is_public === "true" ? "false" : "true";
+
+  // Optimistically update the UI to toggle public status
+  const updatedReviews = reviews.map((o) =>
+    o.id === reviewId ? { ...o, is_public: updatedIsPublic } : o
+  );
+  setReviews(updatedReviews);
+
+  try {
+    const response = await fetch(`http://localhost:8000/api/admin/reviews/${reviewId}?is_public=${updatedIsPublic}`, {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${token}`, // Make sure token is defined elsewhere
+      },
+    });
+
+    if (!response.ok) {
+      console.error("Failed to update public status:", response.statusText);
+      // Revert changes if update failed
+      setReviews(reviews);
+    }
+  } catch (error) {
+    console.error("Error updating public status:", error);
+    // Revert changes if error occurred
+    setReviews(reviews);
+  }
+};
+
+
   return (
     <div>
       <h2 className="text-2xl font-semibold mb-4 text-[#7b1f4b]">Product Reviews</h2>
@@ -62,26 +126,39 @@ const ReviewsPage = () => {
       <table className="min-w-full table-auto">
         <thead>
           <tr>
-            <th className="border px-4 py-2">ID</th>
-            <th className="border px-4 py-2">Product</th>
-            <th className="border px-4 py-2">User</th>
-            <th className="border px-4 py-2">Rating</th>
-            <th className="border px-4 py-2">Review</th>
-            <th className="border px-4 py-2">Actions</th>
-            <th className="border px-4 py-2">Actions</th>
+            <th className="border px-4 py-2  text-black">ID</th>
+            <th className="border px-4 py-2 text-black">Product</th>
+            <th className="border px-4 py-2 text-black">User</th>
+            <th className="border px-4 py-2 text-black">Rating</th>
+            <th className="border px-4 py-2 text-black">Review</th>
+            <th className="border px-4 py-2 text-black">Actions</th>
 
           </tr>
         </thead>
         <tbody>
           {reviews.map((review) => (
             <tr key={review.id}>
-              <td className="border px-4 py-2">{review.id}</td>
-              <td className="border px-4 py-2">{review.product_id}</td>
-              <td className="border px-4 py-2">{review.user_name}</td>
-              <td className="border px-4 py-2">{review.rating}</td>
-              <td className="border px-4 py-2">{review.comment}</td>
-              <td className="border px-4 py-2">
-                <button className="text-blue-500">Edit</button> | <button className="text-red-500">Delete</button>
+              <td className="border px-4 py-2 text-black text-center align-middle">{review.id}</td>
+              <td className="border px-4 py-2 text-black text-center align-middle">{review.product_id}</td>
+              <td className="border px-4 py-2 text-black text-center align-middle">{review.user_name}</td>
+              <td className="border px-4 py-2 text-black text-center align-middle">{review.rating}</td>
+              <td className="border px-4 py-2 text-black text-center align-middle">
+                {review.comment} 
+                {review.is_public === false && (
+                  <button
+                    className="ml-2 text-white bg-[#7b1f4b] px-4 py-2 rounded-md"
+                    onClick={() => handlePublicStatus(review.id)}
+                  >
+                    make Public
+                  </button>
+                )}
+              </td>
+              <td className="px-4 py-2 border border-black text-black text-center align-middle">
+                  <button className="text-[#7b1f4b] mr-3"><FaEye /></button>
+                  
+                  <button className="text-[#7b1f4b]" onClick={() => handleDeleteReview(review.id)}><FaTrash /></button>
+
+
               </td>
             </tr>
           ))}

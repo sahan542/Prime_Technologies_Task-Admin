@@ -11,7 +11,7 @@ const Sidebar: React.FC<SidebarProps> = ({ className }) => {
     { id: 5, label: 'Users', href: '/users' },
     { id: 2, label: 'Orders', href: '/orders' },
     { id: 3, label: 'Products', href: '/products' },
-    { id: 4, label: 'FAQ', href: '/faq' },
+    { id: 4, label: 'QnA', href: '/qna' },
     { id: 6, label: 'Reviews', href: '/reviews' },
     { id: 7, label: 'Notifications', href: '/notifications' },
 
