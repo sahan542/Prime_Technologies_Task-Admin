@@ -60,6 +60,53 @@ html {
   background: radial-gradient(circle, #f4dce6, white);
 }
 
+.btn-primary-new {
+  padding: 0.5rem 1rem; /* py-2 and px-4 */
+  background-color: #7b1f4b; /* bg-green-500 */
+  color: white;
+  border: none;
+  border-radius: 0.375rem; /* rounded-md */
+  font-size: 1rem; /* text-base */
+  text-align: center;
+  cursor: pointer;
+  transition: background-color 0.3s ease-in-out;
+}
+
+
+.btn-primary {
+  width: 100%;
+  padding: 0.5rem 1rem; /* py-2 and px-4 */
+  background-color: #7b1f4b; /* bg-green-500 */
+  color: white;
+  border: none;
+  border-radius: 0.375rem; /* rounded-md */
+  font-size: 1rem; /* text-base */
+  text-align: center;
+  cursor: pointer;
+  transition: background-color 0.3s ease-in-out;
+}
+
+.btn-primary:hover {
+  background-color: #7b1f4b; /* bg-green-600 */
+}
+
+.btn-primary:focus {
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(72, 187, 120, 0.5); /* focus:ring */
+}
+
+/* Hide scrollbar for Chrome, Safari, and Opera */
+.hide-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+/* Hide scrollbar for IE, Edge, and Firefox */
+.hide-scrollbar {
+  -ms-overflow-style: none;  /* IE and Edge */
+  scrollbar-width: none;     /* Firefox */
+}
+
+
 @layer components {
   .product-link:hover {
     color: #7b1f4b; /* Change to the desired color */

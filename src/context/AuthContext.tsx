@@ -1,6 +1,6 @@
 'use client';  // Ensure this is a client component
 
-import { createContext, useState, useContext, ReactNode } from 'react';
+import { createContext, useState, useContext, ReactNode, useEffect } from 'react';
 
 // Define a more flexible User type
 interface User {
@@ -44,16 +44,36 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [token, setToken] = useState<string | null>(null);
   const [isSignupOpen, setIsSignupOpen] = useState<boolean>(false); // Track modal state
 
+  // Get the token from localStorage on initial load
+  useEffect(() => {
+    const storedToken = localStorage.getItem('adminToken');
+    const storedUser = localStorage.getItem('adminUser');
+    
+    if (storedToken) {
+      setToken(storedToken);
+    }
+    
+    if (storedUser) {
+      setUser(JSON.parse(storedUser)); // Store user data in state
+    }
+  }, []);
+
   // SignIn function to set the user and token (using decoded JWT or API data)
   const signIn = (token: string, userData: User) => {
     setToken(token);
     setUser(userData);  // Set the user data
+
+    // Store the token and user in localStorage
+    localStorage.setItem('adminToken', token);
+    localStorage.setItem('adminUser', JSON.stringify(userData));
   };
 
   // SignOut function to clear the user and token
   const signOut = () => {
     setToken(null);
     setUser(null);
+    localStorage.removeItem('adminToken');
+    localStorage.removeItem('adminUser');
   };
 
   // Functions to control the signup modal state

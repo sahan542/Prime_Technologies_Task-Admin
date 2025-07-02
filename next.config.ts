@@ -4,7 +4,16 @@ const nextConfig: NextConfig = {
   images: {
     domains: ['res.cloudinary.com'],  
   },
-  reactStrictMode: true,  
+  reactStrictMode: true,
+  async rewrites() {
+    return [
+      {
+        source: '/products', // When this is called in the frontend
+        destination: 'http://localhost:8000/api/products', // Redirect to backend API
+      },
+    ];
+  },
 };
 
 export default nextConfig;
+

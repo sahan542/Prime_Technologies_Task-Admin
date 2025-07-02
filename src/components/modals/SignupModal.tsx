@@ -1,15 +1,15 @@
 'use client';
 
 import React, { useState } from 'react';
-import { useAuthModal } from '../context/AuthModalContext'; // Assuming you have context for managing modals
 import axios from 'axios';
 
 interface SignUpModalProps {
   isOpen: boolean;
   closeModal: () => void;
+  openSignInModal: () => void; // Pass the function to open the SignIn modal
 }
 
-export default function SignupModal({ isOpen, closeModal }: SignUpModalProps) {
+export default function SignupModal({ isOpen, closeModal, openSignInModal }: SignUpModalProps) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
@@ -42,12 +42,23 @@ export default function SignupModal({ isOpen, closeModal }: SignUpModalProps) {
 
       {/* Modal Content */}
       <div className="bg-white p-6 rounded-lg z-50 w-full max-w-sm shadow-xl backdrop-blur-md">
-        <h2 className="text-lg font-bold text-black mb-4">Create an Account</h2>
+        <div className="flex justify-between items-center">
+          <h2 className="text-2xl text-[#7b1f4b] mb-4">Register</h2>
+          <button
+            onClick={closeModal}
+            className="text-2xl mb-4 font-semibold text-gray-500 hover:text-[#7b1f4b]"
+          >
+            &times; {/* Close button */}
+          </button>
+        </div>
 
         {/* Display error message */}
         {error && <p className="text-red-500 text-sm mb-2">{error}</p>}
 
         {/* Email input */}
+        <label className="block text-sm font-medium text-black">
+          Email <span className="text-red-500 text-lg">*</span>
+        </label>
         <input
           type="email"
           placeholder="Email"
@@ -57,6 +68,9 @@ export default function SignupModal({ isOpen, closeModal }: SignUpModalProps) {
         />
 
         {/* Password input */}
+        <label className="block text-sm font-medium text-black">
+          Password <span className="text-red-500 text-lg">*</span>
+        </label>
         <input
           type="password"
           placeholder="Password"
@@ -68,19 +82,25 @@ export default function SignupModal({ isOpen, closeModal }: SignUpModalProps) {
         {/* Submit button */}
         <button
           onClick={handleSignup}
-          className="w-full bg-blue-600 text-white font-semibold py-2 rounded hover:bg-blue-700"
+          className="btn-primary"
           disabled={loading}
         >
           {loading ? 'Signing up...' : 'Sign Up'}
         </button>
 
-        {/* Cancel button */}
-        <button
-          onClick={closeModal}
-          className="mt-4 text-sm text-gray-600 hover:underline w-full text-center"
-        >
-          Cancel
-        </button>
+        {/* Sign In link */}
+        <p className="text-black mt-4">
+          Already have an account?{" "}
+          <button
+            onClick={() => {
+              closeModal(); // Close the SignUp modal
+              openSignInModal(); // Open the SignIn modal
+            }}
+            className="text-[#7b1f4b] font-semibold hover:underline"
+          >
+            SignIn
+          </button>
+        </p>
       </div>
     </div>
   );

@@ -9,11 +9,10 @@ const NAV_ITEMS = [
   'SKIN CARE',
   'CLENSERS',
   'MOISTURIZORS',
-  'SERAMS',
+  'SERUMS',
   'TONERS',
+  'SUNSCREENS',
   'EYE & LIP CARE',
-  'BLOG',
-  'HOT OFFERS',
 ];
 
 const Navbar = () => {

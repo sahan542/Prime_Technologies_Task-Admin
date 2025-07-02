@@ -18,9 +18,9 @@ const MegaMenuPanel: React.FC<Props> = ({ data, isVisible }) => {
   if (!isVisible) return null;
 
   return (
-    <div className="absolute top-full left-0 w-[900px] bg-red-500 shadow-lg z-40 py-6 px-10 flex gap-12 border-t mt-[25px]">
+    <div className="absolute top-full left-0 w-[400px] bg-white shadow-lg z-40 py-6 px-10 flex gap-12 border-t border-[#7b1f4b] mt-[25px] rounded-[20px]">
       <div className="flex flex-col min-w-[400px]">
-        <h3 className="font-bold text-black mb-2">{data.title}</h3>
+        <h3 className="font-bold text-[#7b1f4b] mb-2">{data.title}</h3>
         {data.categories.map((cat, i) => (
           <Link key={i} href={cat.href} className="text-sm py-1 text-gray-700 hover:underline">
             {cat.label}
@@ -33,8 +33,8 @@ const MegaMenuPanel: React.FC<Props> = ({ data, isVisible }) => {
             key={i}
             src={src}
             alt=""
-            width={120}
-            height={120}
+            width={60}
+            height={40}
             className="rounded-md object-cover"
           />
         ))}
