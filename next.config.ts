@@ -9,7 +9,7 @@ const nextConfig: NextConfig = {
     return [
       {
         source: '/products', // When this is called in the frontend
-        destination: 'http://localhost:8000/api/products', // Redirect to backend API
+        destination: 'http://localhost:8000/api/products', 
       },
     ];
   },

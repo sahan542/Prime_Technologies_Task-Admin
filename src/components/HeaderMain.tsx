@@ -168,7 +168,7 @@ const HeaderMain = () => {
                   </Button>
                 ) : (
                   <Link href="/login">
-                    <Button className="cursor-pointer bg-white text-[#5550A0] hover:bg-white/90"             onClick={openSignInModal}
+                    <Button className="cursor-pointer bg-white text-[#5550A0] hover:bg-white/90" onClick={openSignInModal}
 >
                       Login
                     </Button>

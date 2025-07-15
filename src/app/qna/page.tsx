@@ -106,12 +106,11 @@ const handleDeleteQna = async (qnaId: number) => {
       method: "DELETE",
       headers: {
         "Content-Type": "application/json",
-        "Authorization": `Bearer ${token}`, // Use the token for authentication
+        "Authorization": `Bearer ${token}`,
       },
     });
 
     if (response.ok) {
-      // Optimistically update the UI to remove the order
       setQuestions(questions.filter((ques) => ques.qna_id !== qnaId));
       alert("qna deleted successfully.");
     } else {
