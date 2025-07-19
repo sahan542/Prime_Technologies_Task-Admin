@@ -33,9 +33,6 @@ export const signInUser = async (email: string, password: string) => {
 
   const data = await response.json();
 
-  // Assuming the backend returns an object like:
-  // { "access_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...", "token_type": "bearer" }
-
   const token = data.access_token;
   if (token) {
     // Save token in localStorage

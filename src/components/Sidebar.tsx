@@ -7,7 +7,7 @@ interface SidebarProps {
 
 const Sidebar: React.FC<SidebarProps> = ({ className }) => {
   const links = [
-    { id: 1, label: 'Dashboard', href: '/dashboard' },
+    { id: 1, label: 'Dashboard', href: '/' },
     { id: 5, label: 'Users', href: '/users' },
     { id: 2, label: 'Orders', href: '/orders' },
     { id: 3, label: 'Products', href: '/products' },

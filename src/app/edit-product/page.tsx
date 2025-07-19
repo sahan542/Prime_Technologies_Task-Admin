@@ -3,13 +3,14 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useAuth } from '@/context/AuthContext';  // Import AuthContext to access token
-import { useRouter } from 'next/router';  // Import useRouter from next/router
+import { useRouter, useSearchParams } from 'next/navigation';  // Import useRouter from next/router
 import { toast } from 'react-toastify';  // Import toast for notifications
 
 const EditProduct = () => {
   const { token } = useAuth();  // Get the token from AuthContext
   const router = useRouter();  // Use useRouter for navigation
-  const { id } = router.query;  // Get the product ID from the query string
+  const searchParams = useSearchParams();  // Get query parameters using useSearchParams
+  const id = searchParams.get('id'); 
 
   const [product, setProduct] = useState<{
     slug: string;

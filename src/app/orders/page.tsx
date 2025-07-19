@@ -1,14 +1,17 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { useSelector } from 'react-redux';
-import { RootState } from '@/redux/store';
+import { useSelector } from "react-redux";
+import { RootState } from "@/redux/store";
 import { FaTrash } from "react-icons/fa6";
 import { FaEye } from "react-icons/fa";
+import SignInModal from "@/components/modals/SignInModal";
+import axiosInstance from "../api/axiosInstance";
+import { API_ENDPOINTS } from "../api/endpoints";
+import PrivateRoute from "@/components/PrivateRoute";
+import { toast } from "react-toastify";
+import DeleteUserModal from "@/components/modals/DeleteUserModal";
 
-
-
-// Define the structure for an individual order item
 interface OrderItem {
   id: number;
   name: string;
@@ -16,7 +19,6 @@ interface OrderItem {
   price: number;
 }
 
-// Define the structure for a single order
 interface Order {
   id: number;
   first_name: string;
@@ -39,200 +41,269 @@ interface Order {
 const OrdersPage: React.FC = () => {
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string>("");
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [openSignInModal, setOpenSignInModal] = useState<boolean>(false);
+
+  const [isModalOpen, setIsModalOpen] = useState(false); // For Delete Confirmation Modal
+  const [orderIdToDelete, setOrderIdToDelete] = useState<number | null>(null);
 
   const token = useSelector((state: RootState) => state.auth.token);
   console.log("Access Token from Redux:", token);
 
-  // Fetch orders from the API (replace with your API endpoint)
+  const fetchOrders = async () => {
+    if (!token) {
+      setOpenSignInModal(true);
+      return;
+    }
+
+    setLoading(true);
+
+try {
+  const response = await axiosInstance.get(API_ENDPOINTS.GET_ADMIN_ORDERS, {
+    params: { page: currentPage, limit: 8 },
+  });
+
+  if (response.status === 200) {
+    const data = await response.data;
+
+    if (Array.isArray(data.orders)) {
+      setOrders(data.orders);
+      setTotalPages(data.totalPages);
+    } else {
+      console.error("Received data is not an array:", data);
+    }
+  } else {
+    console.error("Failed to fetch orders:", response.statusText);
+  }
+} catch (error) {
+  console.error("Error fetching orders:", error);
+}
+
+  };
+
   useEffect(() => {
-    const fetchOrders = async () => {
-      if (!token) return; // 🚫 Skip if token is still null (rehydration not complete)
-
-      setLoading(true);
-
-      try {
-        const response = await fetch("http://localhost:8000/api/admin/orders", {
-          method: "GET", 
-          headers: {
-            "Content-Type": "application/json",
-            "Authorization": `Bearer ${token}`, 
-          }
-        });
-
-        if (response.ok) {
-          const data = await response.json();
-
-          // Check if the response is an array
-          if (Array.isArray(data)) {
-            setOrders(data);
-          } else {
-            console.error("Received data is not an array:", data);
-          }
-        } else {
-          console.error("Failed to fetch orders:", response.statusText);
-        }
-      } catch (error) {
-        console.error("Error fetching orders:", error);
-      }
-    };
-
     fetchOrders();
-  }, [token]);
+  }, [currentPage]);
 
-  // Handle toggling order status from "Pending" to "Shipped"
   const handleToggleStatus = async (orderId: number) => {
     const order = orders.find((order) => order.id === orderId);
-    if (!order || order.status !== "Pending") return; // Only allow toggle if status is "Pending"
+    if (!order || order.status !== "Pending") return;
 
-    // Optimistically update the UI to "Shipped"
     const updatedOrders = orders.map((o) =>
       o.id === orderId ? { ...o, status: "Shipped" } : o
     );
     setOrders(updatedOrders);
 
     try {
-      const response = await fetch(`http://localhost:8000/api/admin/orders/${orderId}/status`, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${token}`,
-        },
-        body: JSON.stringify({
-          status: "Shipped",  // Ensure correct status casing
-        }),
-      });
+      const response = await fetch(
+        `http://localhost:8000/api/admin/orders/${orderId}/status`,
+        {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            status: "Shipped",
+          }),
+        }
+      );
 
       if (!response.ok) {
         console.error("Failed to update order status:", response.statusText);
-        // Revert to previous status if backend fails
         setOrders(orders);
       }
     } catch (error) {
       console.error("Error updating order status:", error);
-      // Revert to previous status if error occurs
       setOrders(orders);
     }
   };
 
-const handleTogglePaymentStatus = async (orderId: number) => {
-  const order = orders.find((order) => order.id === orderId);
-  if (!order || order.payment_status !== "Unpaid") return; // Only allow toggle if payment status is "Unpaid"
+  const handleTogglePaymentStatus = async (orderId: number) => {
+    const order = orders.find((order) => order.id === orderId);
+    if (!order || order.payment_status !== "Unpaid") return;
 
-  // Optimistically update the UI to "Paid"
-  const updatedOrders = orders.map((o) =>
-    o.id === orderId ? { ...o, payment_status: "Paid" } : o
-  );
-  setOrders(updatedOrders);
+    const updatedOrders = orders.map((o) =>
+      o.id === orderId ? { ...o, payment_status: "Paid" } : o
+    );
+    setOrders(updatedOrders);
 
-  try {
-    const response = await fetch(`http://localhost:8000/api/admin/orders/${orderId}/payment_status`, {
-      method: "PUT",
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${token}`,
-      },
-    });
+    try {
+      const response = await axiosInstance.put(
+        API_ENDPOINTS.PAYMENT_STATUS_UPDATE.replace(
+          "${orderId}",
+          orderId.toString()
+        ),
+        {}
+      );
 
-    if (!response.ok) {
-      console.error("Failed to update payment status:", response.statusText);
-      // Revert to previous status if backend fails
+      if (response.status === 200) {
+        toast.success("Payment status updated successfully!");
+      } else {
+        console.error("Failed to update payment status:", response.statusText);
+        toast.error("Failed to update payment status.");
+        setOrders(orders);
+      }
+    } catch (error) {
+      console.error("Error updating payment status:", error);
       setOrders(orders);
     }
-  } catch (error) {
-    console.error("Error updating payment status:", error);
-    // Revert to previous status if error occurs
-    setOrders(orders);
-  }
-};
+  };
 
-// Function to handle deleting the order
-const handleDeleteOrder = async (orderId: number) => {
-  const confirmDelete = window.confirm("Are you sure you want to delete this order?");
-  if (!confirmDelete) return;
+  const handleDeleteOrder = async () => {
+    if (orderIdToDelete === null) return;
 
-  try {
-    const response = await fetch(`http://localhost:8000/api/admin/orders/${orderId}`, {
-      method: "DELETE",
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${token}`, // Use the token for authentication
-      },
-    });
+    try {
+      const orderId = Number(orderIdToDelete);
 
-    if (response.ok) {
-      // Optimistically update the UI to remove the order
-      setOrders(orders.filter((order) => order.id !== orderId));
-      alert("Order deleted successfully.");
-    } else {
-      console.error("Failed to delete the order:", response.statusText);
-      alert("Failed to delete the order.");
+      if (isNaN(orderId)) {
+        toast.error("Invalid order ID");
+        return;
+      }
+
+      const response = await axiosInstance.delete(
+        API_ENDPOINTS.DELETE_ORDER.replace("${orderId}", orderId.toString())
+      );
+
+      if (response.status === 200) {
+        setOrders(orders.filter((order) => order.id !== orderIdToDelete));
+        toast.success("Order deleted successfully.");
+      } else {
+        console.error("Failed to delete the order:", response.statusText);
+        toast.error("Failed to delete the order.");
+      }
+    } catch (error) {
+      console.error("Error deleting order:", error);
+      toast.error("Error deleting the order.");
+    } finally {
+      setIsModalOpen(false); // Close the modal after the action
     }
-  } catch (error) {
-    console.error("Error deleting order:", error);
-    alert("Error deleting the order.");
-  }
-};
+  };
 
+  const handlePageChange = (newPage: number) => {
+    if (newPage > 0 && newPage <= totalPages) {
+      setCurrentPage(newPage);
+    }
+  };
+
+  const openDeleteModal = (orderId: number) => {
+    setOrderIdToDelete(orderId);
+    setIsModalOpen(true); // Open delete confirmation modal
+  };
+
+  const closeDeleteModal = () => {
+    setIsModalOpen(false); // Close delete confirmation modal without deletion
+  };
 
   return (
-    <div className="p-6">
-      <h1 className="text-2xl font-bold mb-4 text-[#7b1f4b]">Orders</h1>
-      <div className="overflow-y-auto max-h-[75vh] w-full">
-        <table className="min-w-full table-auto border-collapse border border-gray-300">
-          <thead>
-            <tr>
-              <th className="px-4 py-2 border border-black text-black">Order ID</th>
-              <th className="px-4 py-2 border border-black text-black">Customer Name</th>
-              <th className="px-4 py-2 border border-black text-black">Status</th>
-              <th className="px-4 py-2 border border-black text-black">Total Amount</th>
-              <th className="px-4 py-2 border border-black text-black">Payment Status</th>
-              <th className="px-4 py-2 border border-black text-black">Details</th>
-            </tr>
-          </thead>
-          <tbody>
-            {orders.map((order) => (
-              <tr key={order.id}>
-                <td className="px-4 py-2 border border-black text-black text-center align-middle">{order.id}</td>
-                <td className="px-4 py-2 border border-black text-black text-center align-middle">
-                  {order.full_name} 
-                </td>
-                <td className="px-4 py-2 border border-black text-black text-center align-middle">
-                  {order.status}
-                  {order.status === "Pending" && (
-                    <button
-                      className="ml-2 text-white bg-[#7b1f4b] px-4 py-2 rounded-md"
-                      onClick={() => handleToggleStatus(order.id)}
-                    >
-                      Mark as Shipped
-                    </button>
-                  )}
-                </td>
-                <td className="px-4 py-2 border border-black text-black text-center align-middle">Rs {order.total_price}</td>
-<td className="px-4 py-2 border border-black text-black text-center align-middle">
-  {order.payment_status === "Unpaid" ? (
-    <button
-      className="ml-2 text-white bg-[#7b1f4b] px-4 py-2 rounded-md"
-      onClick={() => handleTogglePaymentStatus(order.id)}
-    >
-      Mark as Paid
-    </button>
-  ) : (
-    <span className="text-black font-bold">Paid</span>
-  )}
-</td>
-                <td className="px-4 py-2 border border-black text-black text-center align-middle">
-                  <button className="text-[#7b1f4b] mr-3"><FaEye /></button>
-                  
-                  <button className="text-[#7b1f4b]" onClick={() => handleDeleteOrder(order.id)}><FaTrash /></button>
-
-
-                </td>
+    <PrivateRoute>
+      <div className="p-6">
+        <h1 className="text-2xl font-bold mb-4 text-[#7b1f4b]">Orders</h1>
+        <div className="overflow-y-auto max-h-[75vh] w-full">
+          <table className="min-w-full table-auto border-collapse border border-gray-300">
+            <thead>
+              <tr>
+                <th className="px-4 py-2 border border-black text-black">
+                  Order ID
+                </th>
+                <th className="px-4 py-2 border border-black text-black">
+                  Customer Name
+                </th>
+                <th className="px-4 py-2 border border-black text-black">
+                  Status
+                </th>
+                <th className="px-4 py-2 border border-black text-black">
+                  Total Amount
+                </th>
+                <th className="px-4 py-2 border border-black text-black">
+                  Payment Status
+                </th>
+                <th className="px-4 py-2 border border-black text-black">
+                  Details
+                </th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {orders.map((order) => (
+                <tr key={order.id}>
+                  <td className="px-4 py-2 border border-black text-black text-center align-middle">
+                    {order.id}
+                  </td>
+                  <td className="px-4 py-2 border border-black text-black text-center align-middle">
+                    {order.full_name}
+                  </td>
+                  <td className="px-4 py-2 border border-black text-black text-center align-middle">
+                    {order.status}
+                  </td>
+                  <td className="px-4 py-2 border border-black text-black text-center align-middle">
+                    Rs {order.total_amount}
+                  </td>
+                  <td className="px-4 py-2 border border-black text-black text-center align-middle">
+                    {order.payment_status === "Unpaid" ? (
+                      <button
+                        className="ml-2 text-white bg-[#7b1f4b] px-4 py-2 rounded-md"
+                        onClick={() => handleTogglePaymentStatus(order.id)}
+                      >
+                        Mark as Paid
+                      </button>
+                    ) : (
+                      <span className="text-black font-bold">Paid</span>
+                    )}
+                  </td>
+                  <td className="px-4 py-2 border border-black text-black text-center align-middle">
+                    <button className="text-[#7b1f4b] mr-3">
+                      <FaEye />
+                    </button>
+                    <button
+                      onClick={() => openDeleteModal(order.id)}
+                      className="text-[#7b1f4b]"
+                    >
+                      <FaTrash />
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+
+        {/* Pagination Controls */}
+        <div className="flex justify-end mt-4">
+          <button
+            onClick={() => handlePageChange(currentPage - 1)}
+            disabled={currentPage === 1}
+            className="px-4 py-2 bg-blue-500 text-white rounded-l"
+          >
+            Prev
+          </button>
+          <span className="px-4 py-2">
+            Page {currentPage} of {totalPages}
+          </span>
+          <button
+            onClick={() => handlePageChange(currentPage + 1)}
+            disabled={currentPage === totalPages}
+            className="px-4 py-2 bg-blue-500 text-white rounded-r"
+          >
+            Next
+          </button>
+        </div>
+
+        <DeleteUserModal
+          isOpen={isModalOpen}
+          onClose={closeDeleteModal}
+          onConfirm={handleDeleteOrder}
+        />
+
+        {openSignInModal && (
+          <SignInModal
+            isOpen={openSignInModal}
+            closeModal={() => setOpenSignInModal(false)}
+          />
+        )}
       </div>
-    </div>
+    </PrivateRoute>
   );
 };
 

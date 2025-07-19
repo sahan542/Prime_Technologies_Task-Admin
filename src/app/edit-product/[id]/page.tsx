@@ -1,15 +1,20 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useAuth } from '@/context/AuthContext';  // Import AuthContext to access token
 import { useRouter } from 'next/navigation';  // Import useRouter for navigation
+import { useParams } from 'next/navigation';  // Import useParams to get dynamic route params
 import { toast } from 'react-toastify';  // Import toast for notifications
 import { useSelector } from 'react-redux';
 import { RootState } from '@/redux/store';
 
-const AddNewProduct = () => {
+const EditProduct = () => {
   const router = useRouter();
+  const { id } = useParams(); 
+  const token = useSelector((state: RootState) => state.auth.token);
+  console.log("Access Token from Redux:", token);
+
   const [product, setProduct] = useState<{
     slug: string;
     title: string;
@@ -32,22 +37,39 @@ const AddNewProduct = () => {
     brand: '',
     img: null,
     sold_recently: 0,
-    benefits: [],  // Benefits is now explicitly typed as string[]
+    benefits: [],
     visible: true,
   });
 
-  const [error, setError] = useState<string>('');
   const [loading, setLoading] = useState<boolean>(false);
-    const token = useSelector((state: RootState) => state.auth.token);
-    console.log("Access Token from Redux:", token);
+  const [error, setError] = useState<string>('');
 
-  // Handle input change for text fields
+  // Fetch the product data using the product ID from URL
+  useEffect(() => {
+    if (!id || !token) return;  // If no id or token, return early
+
+    const fetchProduct = async () => {
+      try {
+        const response = await axios.get(`http://localhost:8000/api/admin/products/${id}`, {
+          headers: {
+            Authorization: `Bearer ${token}`,  // Send the token in the headers
+          },
+        });
+        setProduct(response.data);  // Set the fetched product data to the state
+      } catch (err) {
+        toast.error('Failed to fetch product details.');
+        console.error(err);
+      }
+    };
+
+    fetchProduct();  // Fetch the product data when the component mounts
+  }, [id, token]);  // Only run when `id` or `token` changes
+
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setProduct({ ...product, [name]: value });
   };
 
-  // Handle benefits change (array input)
   const handleBenefitsChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { value } = e.target;
     setProduct({
@@ -56,66 +78,32 @@ const AddNewProduct = () => {
     });
   };
 
-  // Handle image upload (Cloudinary)
-  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-
-    if (!file) return;
-
-    setLoading(true);
-
-    const formData = new FormData();
-    formData.append('file', file);
-    formData.append('upload_preset', 'mern_product'); 
-    formData.append('cloud_name', 'dtzxxgxfh'); // Replace with your cloud name
-
-    try {
-      const res = await axios.post(
-        'https://api.cloudinary.com/v1_1/dtzx6gxfh/image/upload',
-        formData
-      );
-      
-      // Extract the image URL from the response
-      const imageUrl = res.data.secure_url; 
-      setProduct({ ...product, img: imageUrl });
-      toast.success('Image uploaded successfully!');
-    } catch (error) {
-      toast.error('Image upload failed.');
-      console.error(error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // Handle visibility toggle
-  const handleToggleVisibility = () => {
-    setProduct({ ...product, visible: !product.visible });
-  };
-
-  // Handle form submission
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
 
     try {
-      // Sending the product with the image URL (from Cloudinary) and authorization token
-      await axios.post('http://localhost:8000/api/admin/products/', product, {
+      // Sending the updated product data with the auth token
+      await axios.put(`http://localhost:8000/api/admin/products/${id}/edit`, product, {
         headers: {
-          Authorization: `Bearer ${token}`,  // Send the token in the headers
+          Authorization: `Bearer ${token}`,
         },
       });
-      toast.success('Product added successfully!');
-      router.push('/products'); // Redirect to products page after adding a product
+      toast.success('Product updated successfully!');
+      router.push('/products');  // Redirect to products page after updating
     } catch (err) {
-      toast.error('Failed to add product');
-      setError('Failed to add product');
+      toast.error('Failed to update product');
+      setError('Failed to update product');
       setLoading(false);
     }
   };
 
+  if (loading) return <div>Loading...</div>;
+  if (error) return <div>{error}</div>;
+
   return (
     <div className="text-black overflow-y-auto max-h-[90vh] w-full hide-scrollbar">
-      <h2 className="text-2xl font-semibold mb-4">Add New Product</h2>
+      <h2 className="text-2xl font-semibold mb-4">Edit Product</h2>
       <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div className="mb-4">
           <label className="block mb-2">Product Slug</label>
@@ -135,8 +123,7 @@ const AddNewProduct = () => {
             name="title"
             value={product.title}
             onChange={handleInputChange}
-            placeholder="Enter product title"
-            className="border px-4 py-2 w-full placeholder-gray-300"
+            className="border px-4 py-2 w-full"
             required
           />
         </div>
@@ -147,7 +134,6 @@ const AddNewProduct = () => {
             name="description"
             value={product.description}
             onChange={handleInputChange}
-            placeholder="Enter description"
             className="border px-4 py-2 w-full"
             required
           />
@@ -159,7 +145,6 @@ const AddNewProduct = () => {
             name="price"
             value={product.price}
             onChange={handleInputChange}
-            placeholder="Enter product price"
             className="border px-4 py-2 w-full"
             required
           />
@@ -171,7 +156,6 @@ const AddNewProduct = () => {
             name="original_price"
             value={product.original_price}
             onChange={handleInputChange}
-            placeholder="Enter original price"
             className="border px-4 py-2 w-full"
             required
           />
@@ -219,42 +203,24 @@ const AddNewProduct = () => {
           <input
             type="text"
             name="benefits"
-            value={product.benefits.join(', ')} // Corrected to use join() on the array
+            value={product.benefits.join(', ')}
             onChange={handleBenefitsChange}
-            placeholder="Enter benifits"
             className="border px-4 py-2 w-full"
           />
         </div>
+
         <div className="mb-4">
-          <label className="block mb-2">Product Image</label>
-          <input
-            type="file"
-            onChange={handleImageUpload}
-            className="border px-4 py-2 w-full"
-            accept="image/*"
-          />
-          {loading && <div>Uploading Image...</div>}
-        </div>
-        <div className="mb-4">
-          <label className="flex items-center">
-            <input
-              type="checkbox"
-              checked={product.visible}
-              onChange={handleToggleVisibility}
-              className="mr-2"
-            />
-            Is Visible
-          </label>
-        </div>
-        <div className="mb-4">
-          <button type="submit" className="bg-blue-500 text-white px-4 py-2 rounded" disabled={loading}>
-            {loading ? 'Adding Product...' : 'Add Product'}
+          <button
+            type="submit"
+            className="bg-blue-500 text-white px-4 py-2 rounded"
+            disabled={loading}
+          >
+            {loading ? 'Updating Product...' : 'Update Product'}
           </button>
         </div>
-        {error && <div className="text-red-500">{error}</div>}
       </form>
     </div>
   );
 };
 
-export default AddNewProduct;
+export default EditProduct;

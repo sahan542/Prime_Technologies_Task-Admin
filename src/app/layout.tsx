@@ -6,11 +6,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import './globals.css';
 import { Provider } from 'react-redux';
 import { store, persistor } from '@/redux/store';
-import HeaderTop from "@/components/HeaderTop";
-import HeaderMain from "@/components/HeaderMain";
-import Navbar from "@/components/nav/Navbar";
 import Navbars from "@/components/shared/Ui/Navbar/Navbar";
-
 import Footer from "@/components/Footer";
 import { AuthModalProvider } from "@/components/context/AuthModalContext";
 import { AuthProvider } from "@/context/AuthContext";
@@ -102,6 +98,7 @@ export default function RootLayout({
               {/* Modals */}
               <SignupModal isOpen={isSignUpOpen} closeModal={closeSignUpModal} openSignInModal={openSignInModal} />
               <SignInModal isOpen={isSignInOpen} closeModal={closeSignInModal} openSignUpModal={openSignUpModal}/>
+              <ToastContainer position="top-right" autoClose={3000} />
 
               <Footer/>
             </AuthModalProvider>
