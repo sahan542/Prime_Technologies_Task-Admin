@@ -6,7 +6,6 @@ import { FaUser } from "react-icons/fa";
 import { HiShoppingBag } from "react-icons/hi2";
 import { IoIosHeart } from "react-icons/io";
 import SignInModal from "@/components/modals/SignInModal";
-import SignUpModal from "@/components/modals/SignupModal";
 import { useAppDispatch } from "@/store/hooks"; // adjust path if different
 import { fetchProducts } from "@/store/actions";
 import { useRouter } from "next/navigation";
@@ -181,7 +180,6 @@ const HeaderMain = () => {
       {/* SignIn Modal */}
       <SignInModal isOpen={isSignInModalOpen} closeModal={closeSignInModal} openSignUpModal={openSignUpModal}/>
       {/* SignUp Modal */}
-      <SignUpModal isOpen={isSignUpModalOpen} closeModal={closeSignUpModal} openSignInModal={openSignInModal}/>
     </div>
   );
 };

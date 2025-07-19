@@ -11,7 +11,6 @@ import Footer from "@/components/Footer";
 import { AuthModalProvider } from "@/components/context/AuthModalContext";
 import { AuthProvider } from "@/context/AuthContext";
 import SignInModal from "@/components/modals/SignInModal";
-import SignupModal from "@/components/modals/SignupModal";
 import Sidebar from "@/components/Sidebar";
 import { PersistGate } from "redux-persist/integration/react";
 import { ToastContainer } from 'react-toastify';
@@ -95,8 +94,6 @@ export default function RootLayout({
                 </div>
               </div>
 
-              {/* Modals */}
-              <SignupModal isOpen={isSignUpOpen} closeModal={closeSignUpModal} openSignInModal={openSignInModal} />
               <SignInModal isOpen={isSignInOpen} closeModal={closeSignInModal} openSignUpModal={openSignUpModal}/>
               <ToastContainer position="top-right" autoClose={3000} />
 

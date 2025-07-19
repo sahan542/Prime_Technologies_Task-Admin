@@ -2,18 +2,16 @@
 
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { useAuth } from '@/context/AuthContext';  // Import AuthContext to access token
-import { useRouter } from 'next/navigation';  // Import useRouter for navigation
-import { useParams } from 'next/navigation';  // Import useParams to get dynamic route params
-import { toast } from 'react-toastify';  // Import toast for notifications
-import { useSelector } from 'react-redux';
-import { RootState } from '@/redux/store';
+import { useRouter } from 'next/navigation';
+import { useParams } from 'next/navigation'; 
+import { toast } from 'react-toastify';  
+import axiosInstance from '@/app/api/axiosInstance';
+import { API_ENDPOINTS } from '@/app/api/endpoints';
+import PrivateRoute from '@/components/PrivateRoute';
 
 const EditProduct = () => {
   const router = useRouter();
   const { id } = useParams(); 
-  const token = useSelector((state: RootState) => state.auth.token);
-  console.log("Access Token from Redux:", token);
 
   const [product, setProduct] = useState<{
     slug: string;
@@ -25,7 +23,7 @@ const EditProduct = () => {
     brand: string;
     img: string | null;
     sold_recently: number;
-    benefits: string[];  // Explicitly define benefits as string[]
+    benefits: string[]; 
     visible: boolean;
   }>({
     slug: '',
@@ -44,26 +42,25 @@ const EditProduct = () => {
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string>('');
 
-  // Fetch the product data using the product ID from URL
-  useEffect(() => {
-    if (!id || !token) return;  // If no id or token, return early
+useEffect(() => {
+  if (!id) return;
 
-    const fetchProduct = async () => {
-      try {
-        const response = await axios.get(`http://localhost:8000/api/admin/products/${id}`, {
-          headers: {
-            Authorization: `Bearer ${token}`,  // Send the token in the headers
-          },
-        });
-        setProduct(response.data);  // Set the fetched product data to the state
-      } catch (err) {
-        toast.error('Failed to fetch product details.');
-        console.error(err);
-      }
-    };
+  const fetchProduct = async () => {
+    try {
+      const productId = Number(id);
 
-    fetchProduct();  // Fetch the product data when the component mounts
-  }, [id, token]);  // Only run when `id` or `token` changes
+      const response = await axiosInstance.get(API_ENDPOINTS.GET_PRODUCT_BYID.replace("${id}", productId.toString()));
+
+      setProduct(response.data); 
+    } catch (err) {
+      toast.error('Failed to fetch product details.');
+      console.error(err);
+    }
+  };
+
+  fetchProduct();
+}, [id]);
+
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -83,14 +80,18 @@ const EditProduct = () => {
     setLoading(true);
 
     try {
-      // Sending the updated product data with the auth token
-      await axios.put(`http://localhost:8000/api/admin/products/${id}/edit`, product, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
+
+    const productId = Number(id); // Parse userIdEdit to a number
+
+    // Check if the productId is a valid number
+    if (isNaN(productId)) {
+      toast.error("Invalid product ID");
+      return;
+    }
+      await axiosInstance.put(API_ENDPOINTS.EDIT_PRODUCT_BYID.replace("${id}", productId.toString()), product
+);
       toast.success('Product updated successfully!');
-      router.push('/products');  // Redirect to products page after updating
+      router.push('/products'); 
     } catch (err) {
       toast.error('Failed to update product');
       setError('Failed to update product');
@@ -102,6 +103,7 @@ const EditProduct = () => {
   if (error) return <div>{error}</div>;
 
   return (
+    <PrivateRoute>
     <div className="text-black overflow-y-auto max-h-[90vh] w-full hide-scrollbar">
       <h2 className="text-2xl font-semibold mb-4">Edit Product</h2>
       <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -220,6 +222,7 @@ const EditProduct = () => {
         </div>
       </form>
     </div>
+    </PrivateRoute>
   );
 };
 

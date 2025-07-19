@@ -7,6 +7,9 @@ import { useRouter } from 'next/navigation';  // Import useRouter for navigation
 import { toast } from 'react-toastify';  // Import toast for notifications
 import { useSelector } from 'react-redux';
 import { RootState } from '@/redux/store';
+import axiosInstance from '../api/axiosInstance';
+import { API_ENDPOINTS } from '../api/endpoints';
+import PrivateRoute from '@/components/PrivateRoute';
 
 const AddNewProduct = () => {
   const router = useRouter();
@@ -98,14 +101,9 @@ const AddNewProduct = () => {
     setLoading(true);
 
     try {
-      // Sending the product with the image URL (from Cloudinary) and authorization token
-      await axios.post('http://localhost:8000/api/admin/products/', product, {
-        headers: {
-          Authorization: `Bearer ${token}`,  // Send the token in the headers
-        },
-      });
+      await axiosInstance.post(API_ENDPOINTS.ADD_NEW_PRODUCT, product);
       toast.success('Product added successfully!');
-      router.push('/products'); // Redirect to products page after adding a product
+      router.push('/products'); 
     } catch (err) {
       toast.error('Failed to add product');
       setError('Failed to add product');
@@ -114,6 +112,7 @@ const AddNewProduct = () => {
   };
 
   return (
+    <PrivateRoute>
     <div className="text-black overflow-y-auto max-h-[90vh] w-full hide-scrollbar">
       <h2 className="text-2xl font-semibold mb-4">Add New Product</h2>
       <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -254,6 +253,7 @@ const AddNewProduct = () => {
         {error && <div className="text-red-500">{error}</div>}
       </form>
     </div>
+    </PrivateRoute>
   );
 };
 

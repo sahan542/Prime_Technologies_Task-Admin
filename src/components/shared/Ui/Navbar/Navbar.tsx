@@ -20,7 +20,6 @@ import { useAppDispatch, useAppSelector } from "@/redux/hooks";
 import { logout, useCurrentUser } from "@/redux/reducers/authSlice";
 import { removeUser } from "@/services/auth.services";
 import SignInModal from "@/components/modals/SignInModal";
-import SignUpModal from "@/components/modals/SignupModal";
 import axios from "axios";
 import ActiveLink from "../ActiveLink";
 import { MobileMenu } from "./MobileMenu";
@@ -180,7 +179,6 @@ const Navbar = () => {
             {/* SignIn Modal */}
             <SignInModal isOpen={isSignInModalOpen} closeModal={closeSignInModal} openSignUpModal={openSignUpModal}/>
             {/* SignUp Modal */}
-            <SignUpModal isOpen={isSignUpModalOpen} closeModal={closeSignUpModal} openSignInModal={openSignInModal}/>
     </header>
   );
 };
