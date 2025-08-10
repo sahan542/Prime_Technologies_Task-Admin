@@ -7,7 +7,7 @@ import autoSaveUserData from './autoSaveMiddleware';
 export const store = configureStore({
   reducer: {
     cart: cartReducer,
-    products: productsReducer, // ✅ Added product slice
+    products: productsReducer,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware().concat(autoSaveUserData),
@@ -15,18 +15,3 @@ export const store = configureStore({
 
 export type RootState = ReturnType<typeof store.getState>;
 export type AppDispatch = typeof store.dispatch;
-
-
-// import { configureStore } from '@reduxjs/toolkit';
-// import cartReducer from './slices/cartSlice';
-// import productsReducer from './slices/productsSlice';
-
-// export const store = configureStore({
-//   reducer: {
-//     cart: cartReducer,
-//     products: productsReducer,
-//   },
-// });
-
-// export type RootState = ReturnType<typeof store.getState>;
-// export type AppDispatch = typeof store.dispatch;

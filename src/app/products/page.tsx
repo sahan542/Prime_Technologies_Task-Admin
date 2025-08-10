@@ -124,7 +124,6 @@ const handleConfirmDelete = async () => {
     const productId = Number(productIdToDelete);
     const url = API_ENDPOINTS.DELETE_PRODUCT_BYID.replace("${productIdToDelete}", productId.toString() );
 
-    // Make the DELETE request using axiosInstance
     const response = await axiosInstance.delete(API_ENDPOINTS.DELETE_PRODUCT_BYID.replace("${productIdToDelete}", productId.toString()));
     if (response.status === 200) {
       setProducts(products.filter((product) => product.id !== productId)); 

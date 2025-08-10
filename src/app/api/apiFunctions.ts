@@ -1,4 +1,3 @@
-// api/apiFunctions.ts
 import axiosInstance from "../api/axiosInstance"; 
 import { API_ENDPOINTS } from "./endpoints";
 
